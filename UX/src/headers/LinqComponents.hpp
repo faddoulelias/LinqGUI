@@ -37,4 +37,7 @@ namespace LinqComponents
     Flow::Text *createTextLine(Flow::Window *window, Flow::Component *parent, std::string text, std::string font_path, int font_size, double row_index, int page_id);
 
     Flow::Image *createGameBoard(Flow::Window *window, Flow::Component *parent, std::string username, Role role, std::string secret_word, int page_id);
+
+    std::string createGameDataSection(Flow::Window *window, Flow::Component *parent, std::map<std::string, std::string> conv,
+                                      std::function<void(std::string)> onSend, bool is_my_turn, int page_id);
 }

@@ -20,6 +20,7 @@ Flow::Window window;
 // Setup Page
 std::vector<Flow::Text *> players_display;
 Flow::Text *port_text = nullptr;
+std::map<std::string, std::string> players_words;
 
 // Game Page
 Flow::Image *game_background = nullptr;
@@ -80,7 +81,53 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 
 		game_board = LinqComponents::createGameBoard(&window, game_background, game->username, component_role, game->word, GAME_PAGE);
 
+		for (const std::string &player : game->players)
+		{
+			players_words[player] = "";
+		}
+
+		window.removeComponentsByLabel("game-data-label");
+		LinqComponents::createGameDataSection(
+			&window, game_board, players_words,
+			[](std::string output)
+			{
+				std::cout << output << std::endl;
+			},
+			false, GAME_PAGE);
+
 		window.setCurrentPage(GAME_PAGE);
+	}
+	else if (request.type == LinqClient::ServerRequestType::PLAY)
+	{
+		if (std::stoi(request.args[0]) == game->id)
+		{
+
+			window.removeComponentsByLabel("game-data-label");
+			LinqComponents::createGameDataSection(
+				&window, game_board, players_words,
+				[client](std::string output)
+				{
+					client->sendMessage("WORD " + std::to_string(game->id) + " " + output);
+				},
+				true, GAME_PAGE);
+		}
+		else
+		{
+			std::cout << "It's " << request.args[1] << "'s turn" << std::endl;
+		}
+	}
+	else if (request.type == LinqClient::ServerRequestType::SAID)
+	{
+		players_words[request.args[0]] = players_words[request.args[0]] + " " + request.args[1];
+
+		window.removeComponentsByLabel("game-data-label");
+		LinqComponents::createGameDataSection(
+			&window, game_board, players_words,
+			[](std::string output)
+			{
+				std::cout << output << std::endl;
+			},
+			false, GAME_PAGE);
 	}
 	else
 	{
@@ -165,7 +212,7 @@ int main(int argc, char *argv[])
 	}
 
 	// *****************
-	// * Game Page *
+	// * Game Page 	   *
 	// *****************
 
 	game_background = LinqComponents::setPageBackground(&window, GAME_PAGE, LinqComponents::GameBackgroundImagePath);

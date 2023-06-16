@@ -143,11 +143,16 @@ ObjectComponent::ObjectComponent(Component *parent)
     this->on_write = nullptr;
     this->focused = false;
     this->id = -1;
+    this->label = std::string("");
 }
 
 int ObjectComponent::getId() { return id; }
 
 void ObjectComponent::setId(int id) { this->id = id; }
+
+void ObjectComponent::setLabel(std::string label) { this->label = label; };
+
+std::string ObjectComponent::getLabel() { return label; };
 
 Component *ObjectComponent::getParent()
 {

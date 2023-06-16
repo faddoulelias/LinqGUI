@@ -32,6 +32,7 @@ namespace Flow
         bool hovered;
         bool focused;
         int id;
+        std::string label;
 
     public:
         ObjectComponent(Component *parent);
@@ -41,6 +42,9 @@ namespace Flow
 
         int getId();
         void setId(int id);
+
+        std::string getLabel();
+        void setLabel(std::string label);
 
         Component *getParent();
         void setParent(Component *parent);
@@ -129,4 +133,4 @@ namespace Flow
 
         void render(Window *window) override;
     };
-};
+}

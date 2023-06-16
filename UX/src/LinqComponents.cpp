@@ -275,7 +275,173 @@ Flow::Image *LinqComponents::createGameBoard(Flow::Window *window, Flow::Compone
     centered_section->setParentReference(Flow::ReferencePoint::Center);
     window->addComponent(page_id, centered_section);
 
-    Flow::Image *game_spy_avatar_frame = createAvatarSection(window, centered_section, username, role, secret_word, page_id);
+    createAvatarSection(window, centered_section, username, role, secret_word, page_id);
     Flow::Image *game_board = createCentralGameBoard(window, centered_section, page_id);
     return game_board;
+}
+
+std::string LinqComponents::createGameDataSection(Flow::Window *window, Flow::Component *parent, std::map<std::string, std::string> conv,
+                                                  std::function<void(std::string)> onSend, bool is_my_turn, int page_id)
+{
+    std::string label = "game-data-label";
+    std::vector<std::string> lines;
+    std::string said_buffer;
+    for (const auto &player_say_pair : conv)
+    {
+        said_buffer = " - " + player_say_pair.first + " said : " + player_say_pair.second;
+        lines.push_back(said_buffer);
+    }
+
+    Flow::Text *page_title = new Flow::Text(parent);
+    page_title->setLabel(label);
+    page_title->setText("This is your notebook (intercepted telegrams)");
+    page_title->loadFont(LinqComponents::OldStandardTTBold, 35);
+    page_title->setRelativePosition({0, 30});
+    page_title->setAutoSize(true);
+    page_title->setBackground({0, 0, 0, 0});
+    page_title->setColor({12, 12, 12, 255});
+    page_title->setChildReference(Flow::ReferencePoint::TopCenter);
+    page_title->setParentReference(Flow::ReferencePoint::TopCenter);
+    int window_location = window->addComponent(page_id, page_title);
+
+    int i = 0;
+    for (const auto &line : lines)
+    {
+        i++;
+        Flow::Text *said_text = new Flow::Text(parent);
+        said_text->setLabel(label);
+        said_text->setText(line);
+        said_text->loadFont(LinqComponents::OldStandardTTItalic, 25);
+        said_text->setRelativePosition({30, 60 + 40 * i});
+        said_text->setAutoSize(true);
+        said_text->setBackground({0, 0, 0, 0});
+        said_text->setColor({12, 12, 12, 255});
+        said_text->setChildReference(Flow::ReferencePoint::TopLeft);
+        said_text->setParentReference(Flow::ReferencePoint::TopLeft);
+        window->addComponent(page_id, said_text);
+    }
+
+    // telegram input
+    Flow::Image *input_frame = new Flow::Image(parent);
+    Flow::Text *input_frame_text = new Flow::Text(input_frame);
+
+    std::function<void(Flow::Component *)> onHoverEnter = [](Flow::Component *component)
+    { if (!((Flow::Image *)component)->isFocused()) ((Flow::Image *)component)->setPath(LinqComponents::InputFrameHoverImagePath); };
+
+    std::function<void(Flow::Component *)> onHoverExit = [](Flow::Component *component)
+    { if (!((Flow::Image *)component)->isFocused()) ((Flow::Image *)component)->setPath(LinqComponents::InputFrameImagePath); };
+
+    std::function<void(Flow::Component *)> onFocused = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::InputFrameFocusImagePath); };
+
+    std::function<void(Flow::Component *)> onUnfocused = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::InputFrameImagePath); };
+
+    std::function<void(Flow::Component *)> onHoverButtonEnter = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::MenuBoardButtonHoverImagePath); };
+
+    std::function<void(Flow::Component *)> onHoverButtonExit = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::MenuBoardButtonImagePath); };
+
+    std::function<void(Flow::Window *, Flow::Component *, std::string, Flow::Text * displayer)>
+        onWrite = [](Flow::Window *window, Flow::Component *component, std::string text, Flow::Text *displayer)
+    {
+        if (((Flow::Image *)component)->isFocused())
+        {
+            std::string output = displayer->getText();
+            if (text == "\b")
+            {
+                if (output.size() > 0)
+                    output.pop_back();
+            }
+            else
+            {
+                output += text;
+            }
+
+            displayer->setText(output);
+        }
+    };
+
+    if (is_my_turn)
+    {
+        Flow::Text *telegram_label = new Flow::Text(parent);
+        telegram_label->setText("Your telegram : ");
+        telegram_label->setLabel(label);
+        telegram_label->loadFont(LinqComponents::OldStandardTT, 25);
+        telegram_label->setRelativePosition({30, -20});
+        telegram_label->setAutoSize(true);
+        telegram_label->setBackground({0, 0, 0, 0});
+        telegram_label->setColor({12, 12, 12, 255});
+        telegram_label->setChildReference(Flow::ReferencePoint::BottomLeft);
+        telegram_label->setParentReference(Flow::ReferencePoint::BottomLeft);
+        window->addComponent(page_id, telegram_label);
+
+        // Input frame
+        input_frame->setPath(LinqComponents::InputFrameImagePath);
+        input_frame->setLabel(label);
+        input_frame->setRelativePosition({-225, -20});
+        input_frame->setBackground({0, 0, 255, 255});
+        input_frame->setDimension({250, 40});
+        input_frame->setChildReference(Flow::ReferencePoint::BottomRight);
+        input_frame->setParentReference(Flow::ReferencePoint::BottomRight);
+        input_frame->onClick([onFocused](Flow::Window *window, Flow::Component *component)
+                             {
+            ((Flow::Image *)component)->setFocused(true);
+            onFocused(component); });
+        input_frame->onClickOutside([onUnfocused](Flow::Window *window, Flow::Component *component)
+                                    {
+            ((Flow::Image *)component)->setFocused(false);
+            onUnfocused(component); });
+        input_frame->onHoverEnter(onHoverEnter);
+        input_frame->onHoverExit(onHoverExit);
+        input_frame->onWrite([onWrite, input_frame_text](Flow::Window *window, Flow::Component *component, std::string text)
+                             { onWrite(window, component, text, input_frame_text); });
+
+        window->addComponent(page_id, input_frame);
+
+        // Input frame text
+        input_frame_text->setText("");
+        input_frame_text->setLabel(label);
+        input_frame_text->loadFont(LinqComponents::OldStandardTT, 28);
+        input_frame_text->setRelativePosition({0, 0});
+        input_frame_text->setAutoSize(true);
+        input_frame_text->setBackground({0, 0, 0, 0});
+        input_frame_text->setColor({12, 12, 12, 255});
+        input_frame_text->setChildReference(Flow::ReferencePoint::Center);
+        input_frame_text->setParentReference(Flow::ReferencePoint::Center);
+        window->addComponent(page_id, input_frame_text);
+
+        // send button
+        Flow::Image *create_game_button_frame = new Flow::Image(parent);
+        create_game_button_frame->setPath("./res/images/ButtonFrame.png");
+        create_game_button_frame->setLabel(label);
+        create_game_button_frame->setRelativePosition({-20, -20});
+        create_game_button_frame->setBackground({0, 0, 255, 255});
+        create_game_button_frame->setDimension({200, 40});
+        create_game_button_frame->setChildReference(Flow::ReferencePoint::BottomRight);
+        create_game_button_frame->setParentReference(Flow::ReferencePoint::BottomRight);
+        create_game_button_frame->onClick([=](Flow::Window *, Flow::Component *)
+                                          { 
+                                            onSend(input_frame_text->getText());
+                                            create_game_button_frame->onClick(nullptr); });
+        create_game_button_frame->onHoverEnter(onHoverButtonEnter);
+        create_game_button_frame->onHoverExit(onHoverButtonExit);
+
+        window->addComponent(page_id, create_game_button_frame);
+
+        Flow::Text *create_game_button_text = new Flow::Text(create_game_button_frame);
+        create_game_button_text->setText("Send");
+        create_game_button_text->setLabel(label);
+        create_game_button_text->loadFont(LinqComponents::OldStandardTT, 20);
+        create_game_button_text->setRelativePosition({0, 0});
+        create_game_button_text->setAutoSize(true);
+        create_game_button_text->setBackground({0, 0, 0, 0});
+        create_game_button_text->setColor({12, 12, 12, 255});
+        create_game_button_text->setChildReference(Flow::ReferencePoint::Center);
+        create_game_button_text->setParentReference(Flow::ReferencePoint::Center);
+        window->addComponent(page_id, create_game_button_text);
+    }
+
+    return label;
 }

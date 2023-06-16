@@ -119,13 +119,17 @@ void *Window::getRenderer()
     return this->renderer;
 }
 
-void Window::addComponent(int page_id, ObjectComponent *component)
+int Window::addComponent(int page_id, ObjectComponent *component)
 {
+    int location = this->children.size();
     this->children.push_back(make_pair(page_id, component));
+
+    return location;
 }
 
 void Window::removeComponent(int id)
 {
+
     for (auto it = this->children.begin(); it != this->children.end(); ++it)
     {
         if (it->second->getId() == id)
@@ -134,6 +138,14 @@ void Window::removeComponent(int id)
             break;
         }
     }
+}
+
+void Window::removeComponentsByLabel(std::string label)
+{
+    auto it = std::remove_if(this->children.begin(), this->children.end(), [&, label](std::pair<int, Flow::ObjectComponent *> cmp)
+                             { return cmp.second->getLabel() == label; });
+
+    this->children.erase(it, this->children.end());
 }
 
 void Window::handleEvent(void *event)

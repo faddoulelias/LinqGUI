@@ -99,8 +99,9 @@ namespace Flow
 
         void *getRenderer();
 
-        void addComponent(int page_id, ObjectComponent *component);
+        int addComponent(int page_id, ObjectComponent *component);
         void removeComponent(int id);
+        void removeComponentsByLabel(std::string label);
 
         void setCurrentPage(int page_id);
         int getCurrentPage();
