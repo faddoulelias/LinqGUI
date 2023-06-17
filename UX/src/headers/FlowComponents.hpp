@@ -99,6 +99,7 @@ namespace Flow
         Color color;
         std::string path;
         void *font;
+        void *texture;
 
     public:
         Text(Component *parent);

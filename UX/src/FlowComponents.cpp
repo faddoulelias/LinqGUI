@@ -343,6 +343,7 @@ Text::Text(Component *parent) : ObjectComponent(parent)
     this->path = "";
     this->font = nullptr;
     this->font_size = 25;
+    this->texture = nullptr;
 }
 
 string Text::getText()
@@ -353,6 +354,7 @@ string Text::getText()
 void Text::setText(std::string text)
 {
     this->text = text;
+    this->texture = nullptr;
 }
 
 Color Text::getColor()
@@ -363,6 +365,7 @@ Color Text::getColor()
 void Text::setColor(Color color)
 {
     this->color = color;
+    this->texture = nullptr;
 }
 
 bool Text::isAutoSize()
@@ -373,6 +376,7 @@ bool Text::isAutoSize()
 void Text::setAutoSize(bool auto_size)
 {
     this->auto_size = auto_size;
+    this->texture = nullptr;
 }
 
 void Text::loadFont(std::string path, int font_size)
@@ -380,6 +384,7 @@ void Text::loadFont(std::string path, int font_size)
     this->path = path;
     this->font_size = font_size;
     this->font = TTF_OpenFont(path.c_str(), font_size);
+    this->texture = nullptr;
     if (this->font == nullptr)
     {
         printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
@@ -415,9 +420,6 @@ void Text::render(Window *window)
         }
     }
 
-    SDL_Renderer *renderer = (SDL_Renderer *)window->getRenderer();
-    SDL_Color sdl_color = {(Uint8)color.r, (Uint8)color.g, (Uint8)color.b, (Uint8)color.a};
-
     const char *text;
     if (this->text == "")
     {
@@ -428,13 +430,23 @@ void Text::render(Window *window)
         text = this->text.c_str();
     }
 
-    unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> surface(TTF_RenderText_Blended((TTF_Font *)this->font, text, sdl_color), SDL_FreeSurface);
-    unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(SDL_CreateTextureFromSurface(renderer, surface.get()), SDL_DestroyTexture);
-
-    if (auto_size)
+    SDL_Renderer *renderer = (SDL_Renderer *)window->getRenderer();
+    if (this->texture == nullptr)
     {
-        dimension.width = surface->w;
-        dimension.height = surface->h;
+        SDL_Color sdl_color = {(Uint8)color.r, (Uint8)color.g, (Uint8)color.b, (Uint8)color.a};
+        SDL_Surface *surface = TTF_RenderText_Blended((TTF_Font *)this->font, text, sdl_color);
+        this->texture = SDL_CreateTextureFromSurface(renderer, surface);
+        if (this->texture == nullptr)
+        {
+            cout << "Error creating texture : " << SDL_GetError() << endl;
+            return;
+        }
+
+        if (auto_size)
+        {
+            dimension.width = surface->w;
+            dimension.height = surface->h;
+        }
     }
 
     SDL_Rect text_rect;
@@ -449,7 +461,7 @@ void Text::render(Window *window)
     SDL_RenderFillRect(renderer, &text_rect);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-    SDL_RenderCopy(renderer, texture.get(), NULL, &text_rect);
+    SDL_RenderCopy(renderer, (SDL_Texture *)this->texture, NULL, &text_rect);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------------------- */
@@ -469,8 +481,7 @@ string Image::getPath()
 void Image::setPath(std::string path)
 {
     this->path = path;
-    SDL_Surface *image = IMG_Load(path.c_str());
-    this->image = image;
+    this->image = nullptr;
 }
 
 void Image::render(Window *window)
@@ -502,20 +513,16 @@ void Image::render(Window *window)
         }
     }
 
-    if (image == nullptr)
-    {
-        cout << "Error loading image : " << IMG_GetError() << endl;
-        return;
-    }
-
     try
     {
-        unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> image_texture(SDL_CreateTextureFromSurface((SDL_Renderer *)window->getRenderer(), (SDL_Surface *)this->image),
-                                                                             SDL_DestroyTexture);
-        if (image_texture == nullptr)
+        if (image == nullptr)
         {
-            cout << "Error creating texture : " << SDL_GetError() << endl;
-            return;
+            this->image = SDL_CreateTextureFromSurface((SDL_Renderer *)window->getRenderer(), IMG_Load(path.c_str()));
+            if (this->image == nullptr)
+            {
+                cout << "Error creating texture : " << SDL_GetError() << endl;
+                return;
+            }
         }
 
         SDL_Rect image_rect;
@@ -526,7 +533,7 @@ void Image::render(Window *window)
 
         position = absolute_pos;
 
-        SDL_RenderCopy((SDL_Renderer *)window->getRenderer(), image_texture.get(), NULL, &image_rect);
+        SDL_RenderCopy((SDL_Renderer *)window->getRenderer(), (SDL_Texture *)this->image, NULL, &image_rect);
     }
     catch (const std::exception &e)
     {

@@ -281,7 +281,7 @@ Flow::Image *LinqComponents::createGameBoard(Flow::Window *window, Flow::Compone
 }
 
 std::string LinqComponents::createGameDataSection(Flow::Window *window, Flow::Component *parent, std::map<std::string, std::string> conv,
-                                                  std::function<void(std::string)> onSend, bool is_my_turn, int page_id)
+                                                  std::string current_player, std::function<void(std::string)> onSend, bool is_my_turn, int page_id)
 {
     std::string label = "game-data-label";
     std::vector<std::string> lines;
@@ -302,7 +302,7 @@ std::string LinqComponents::createGameDataSection(Flow::Window *window, Flow::Co
     page_title->setColor({12, 12, 12, 255});
     page_title->setChildReference(Flow::ReferencePoint::TopCenter);
     page_title->setParentReference(Flow::ReferencePoint::TopCenter);
-    int window_location = window->addComponent(page_id, page_title);
+    window->addComponent(page_id, page_title);
 
     int i = 0;
     for (const auto &line : lines)
@@ -320,6 +320,29 @@ std::string LinqComponents::createGameDataSection(Flow::Window *window, Flow::Co
         said_text->setParentReference(Flow::ReferencePoint::TopLeft);
         window->addComponent(page_id, said_text);
     }
+
+    i++;
+    std::string turn_text_string;
+    if (is_my_turn)
+    {
+        turn_text_string = "It is your turn to send a telegram!";
+    }
+    else
+    {
+        turn_text_string = "You are intercepting " + current_player + "'s telegram!";
+    }
+
+    Flow::Text *turn_text = new Flow::Text(parent);
+    turn_text->setLabel(label);
+    turn_text->setText(turn_text_string);
+    turn_text->loadFont(LinqComponents::OldStandardTTBold, 23);
+    turn_text->setRelativePosition({30, 60 + 40 * i});
+    turn_text->setAutoSize(true);
+    turn_text->setBackground({0, 0, 0, 0});
+    turn_text->setColor({12, 12, 12, 255});
+    turn_text->setChildReference(Flow::ReferencePoint::TopLeft);
+    turn_text->setParentReference(Flow::ReferencePoint::TopLeft);
+    window->addComponent(page_id, turn_text);
 
     // telegram input
     Flow::Image *input_frame = new Flow::Image(parent);

@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <vector>
 #include <string>
 #include <map>
@@ -77,6 +78,7 @@ namespace Flow
 
         void *window;
         void *renderer;
+        std::function<void()> on_next_render;
 
         std::vector<std::pair<int, ObjectComponent *>> children;
         int current_page;
@@ -105,6 +107,8 @@ namespace Flow
 
         void setCurrentPage(int page_id);
         int getCurrentPage();
+
+        void onNextRender(std::function<void()> on_next_render);
 
         void mainLoop();
     };

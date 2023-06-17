@@ -86,14 +86,11 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 			players_words[player] = "";
 		}
 
+		window.onNextRender([]()
+							{
 		window.removeComponentsByLabel("game-data-label");
 		LinqComponents::createGameDataSection(
-			&window, game_board, players_words,
-			[](std::string output)
-			{
-				std::cout << output << std::endl;
-			},
-			false, GAME_PAGE);
+			&window, game_board, players_words, "", [](std::string output) {}, false, GAME_PAGE); });
 
 		window.setCurrentPage(GAME_PAGE);
 	}
@@ -101,33 +98,36 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 	{
 		if (std::stoi(request.args[0]) == game->id)
 		{
-
+			window.onNextRender([client]()
+								{
 			window.removeComponentsByLabel("game-data-label");
 			LinqComponents::createGameDataSection(
-				&window, game_board, players_words,
+				&window, game_board, players_words, "",
 				[client](std::string output)
-				{
-					client->sendMessage("WORD " + std::to_string(game->id) + " " + output);
-				},
-				true, GAME_PAGE);
+				{ client->sendMessage("WORD " + std::to_string(game->id) + " " + output); },
+				true, GAME_PAGE); });
 		}
 		else
 		{
-			std::cout << "It's " << request.args[1] << "'s turn" << std::endl;
+			window.onNextRender([client, request]()
+								{
+				window.removeComponentsByLabel("game-data-label");
+				LinqComponents::createGameDataSection(
+					&window, game_board, players_words, request.args[1],
+					[client](std::string output)
+					{ client->sendMessage("WORD " + std::to_string(game->id) + " " + output); },
+					false, GAME_PAGE); });
 		}
 	}
 	else if (request.type == LinqClient::ServerRequestType::SAID)
 	{
 		players_words[request.args[0]] = players_words[request.args[0]] + " " + request.args[1];
 
-		window.removeComponentsByLabel("game-data-label");
-		LinqComponents::createGameDataSection(
-			&window, game_board, players_words,
-			[](std::string output)
-			{
-				std::cout << output << std::endl;
-			},
-			false, GAME_PAGE);
+		window.onNextRender([client, request]()
+							{
+			window.removeComponentsByLabel("game-data-label");
+			LinqComponents::createGameDataSection(
+				&window, game_board, players_words, "", [](std::string output) {}, false, GAME_PAGE); });
 	}
 	else
 	{
