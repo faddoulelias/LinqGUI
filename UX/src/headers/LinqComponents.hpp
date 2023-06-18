@@ -30,6 +30,8 @@ namespace LinqComponents
     const std::string SpyAvatarImagePath = "./res/images/SpyAvatar.png";
     const std::string CounterSpyAvatarImagePath = "./res/images/CounterSpyAvatar.png";
     const std::string MorseIlustrationImagePath = "./res/images/MorseIlustration.png";
+    const std::string WinnerBoardImagePath = "./res/images/WinnerBoard.png";
+    const std::string WinnerBoardWallpaperImagePath = "./res/images/WinnerBoardWallpaper.png";
 
     Flow::Image *setPageBackground(Flow::Window *window, int page_id, std::string path);
     Flow::Image *createMenuBoard(Flow::Window *window, Flow::Component *parent, std::string title, int page_id);
@@ -48,4 +50,7 @@ namespace LinqComponents
                                       std::function<void(std::pair<std::string, std::string>)> voteHandler,
                                       std::pair<std::string, std::string> &selected,
                                       LinqComponents::Role role);
+
+    std::string createWinnerBoard(Flow::Window *window, int page_id, LinqComponents::Role role, std::vector<std::string> winners, bool you_won);
+
 }

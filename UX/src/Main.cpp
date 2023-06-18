@@ -11,6 +11,7 @@
 #define CREATE_GAME_MENU 2
 #define CONNECTION_LOBBY 3
 #define GAME_PAGE 4
+#define WINNER_PAGE 5
 
 LinqClient::ClientConnection *client = nullptr;
 LinqClient::LinqClientGame *game = nullptr;
@@ -163,6 +164,28 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 	else if (request.type == LinqClient::ServerRequestType::VOTED)
 	{
 		std::cout << request.args[0] << " Voted for " << request.args[1] << " and " << request.args[2] << std::endl;
+	}
+	else if (request.type == LinqClient::ServerRequestType::WIN)
+	{
+		LinqComponents::Role winner_role = (LinqComponents::Role)std::stoi(request.args[0]);
+		std::vector<std::string> winners = {};
+		for (size_t i = 1; i < request.args.size(); i++)
+			winners.push_back(request.args[i]);
+
+		if (winner_role == (LinqComponents::Role)((int)game->role))
+		{
+			window.onNextRender([winner_role, winners]()
+								{
+			LinqComponents::createWinnerBoard(&window, WINNER_PAGE, winner_role, winners, true);
+			window.setCurrentPage(WINNER_PAGE); });
+		}
+		else
+		{
+			window.onNextRender([winner_role, winners]()
+								{
+				LinqComponents::createWinnerBoard(&window, WINNER_PAGE, winner_role, winners, false);
+				window.setCurrentPage(WINNER_PAGE); });
+		}
 	}
 	else
 	{

@@ -659,3 +659,86 @@ std::string LinqComponents::createVoteDataSection(Flow::Window *window, Flow::Co
 
     return label;
 }
+
+std::string LinqComponents::createWinnerBoard(Flow::Window *window, int page_id, LinqComponents::Role role, std::vector<std::string> winners, bool you_won)
+{
+    Flow::Image *game_background = LinqComponents::setPageBackground(window, page_id, LinqComponents::WinnerBoardWallpaperImagePath);
+
+    Flow::Image *winner_board = new Flow::Image(game_background);
+    winner_board->setPath(LinqComponents::WinnerBoardImagePath);
+    winner_board->setRelativePosition({0, 0});
+    winner_board->setBackground({0, 0, 255, 255});
+    winner_board->setDimension({400, 600});
+    winner_board->setChildReference(Flow::ReferencePoint::Center);
+    winner_board->setParentReference(Flow::ReferencePoint::Center);
+    window->addComponent(page_id, winner_board);
+
+    std::string winners_line;
+    Flow::Image *avatar = new Flow::Image(winner_board);
+    if (role == Role::Spy)
+    {
+        avatar->setPath(LinqComponents::SpyAvatarImagePath);
+        winners_line = "Spies Win!";
+    }
+    else
+    {
+        avatar->setPath(LinqComponents::CounterSpyAvatarImagePath);
+        winners_line = "Agents Win!";
+    }
+
+    avatar->setRelativePosition({0, 50});
+    avatar->setBackground({0, 0, 255, 255});
+    avatar->setDimension({200, 200});
+    avatar->setChildReference(Flow::ReferencePoint::TopCenter);
+    avatar->setParentReference(Flow::ReferencePoint::TopCenter);
+    window->addComponent(page_id, avatar);
+
+    Flow::Text *line1 = new Flow::Text(winner_board);
+    line1->setText(winners_line);
+    line1->loadFont(LinqComponents::OldStandardTTBold, 30);
+    line1->setRelativePosition({0, 280});
+    line1->setAutoSize(true);
+    line1->setBackground({0, 0, 0, 0});
+    line1->setColor({12, 12, 12, 255});
+    line1->setChildReference(Flow::ReferencePoint::TopCenter);
+    line1->setParentReference(Flow::ReferencePoint::TopCenter);
+    window->addComponent(page_id, line1);
+
+    int i = 0;
+    for (const auto &winner : winners)
+    {
+        Flow::Text *winner_name_line = new Flow::Text(winner_board);
+        winner_name_line->setText(winner);
+        winner_name_line->loadFont(LinqComponents::OldStandardTT, 27);
+        winner_name_line->setRelativePosition({0, 350 + 38 * i});
+        winner_name_line->setAutoSize(true);
+        winner_name_line->setBackground({0, 0, 0, 0});
+        winner_name_line->setColor({12, 12, 12, 255});
+        winner_name_line->setChildReference(Flow::ReferencePoint::TopCenter);
+        winner_name_line->setParentReference(Flow::ReferencePoint::TopCenter);
+        window->addComponent(page_id, winner_name_line);
+        i++;
+    }
+
+    Flow::Text *you_won_line = new Flow::Text(winner_board);
+    you_won_line->loadFont(LinqComponents::OldStandardTTBold, 30);
+    you_won_line->setRelativePosition({0, -50});
+    you_won_line->setAutoSize(true);
+    you_won_line->setChildReference(Flow::ReferencePoint::BottomCenter);
+    you_won_line->setParentReference(Flow::ReferencePoint::BottomCenter);
+    if (you_won)
+    {
+        you_won_line->setBackground({0, 12, 238, 255});
+        you_won_line->setColor({12, 238, 12, 255});
+        you_won_line->setText("YOU WIN !!");
+    }
+    else
+    {
+        you_won_line->setBackground({0, 0, 0, 255});
+        you_won_line->setColor({238, 12, 12, 255});
+        you_won_line->setText("YOU LOSE !!");
+    }
+    window->addComponent(page_id, you_won_line);
+
+    return "";
+}
