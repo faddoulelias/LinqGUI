@@ -175,7 +175,10 @@ void Window::handleEvent(void *event)
             {
                 it->second->handleOnClick(this);
             }
-            else
+        }
+        for (auto it = this->children.begin(); it != this->children.end(); ++it)
+        {
+            if (!it->second->isHovered())
             {
                 it->second->handleOnClickOutside(this);
             }

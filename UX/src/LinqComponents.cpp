@@ -468,3 +468,194 @@ std::string LinqComponents::createGameDataSection(Flow::Window *window, Flow::Co
 
     return label;
 }
+
+void selectSpy(std::pair<std::string, std::string> &selected, std::string new_spy)
+{
+    if (selected.first == new_spy)
+    {
+        selected.first = selected.second;
+        selected.second = "";
+        return;
+    }
+    else if (selected.second == new_spy)
+    {
+        selected.second = "";
+        return;
+    }
+
+    if (selected.first == "")
+    {
+        selected.first = new_spy;
+    }
+    else if (selected.second == "")
+    {
+        selected.second = new_spy;
+    }
+    else
+    {
+        selected.first = new_spy;
+        selected.second = "";
+    }
+}
+
+std::string LinqComponents::createVoteDataSection(Flow::Window *window, Flow::Component *parent, int page_id, bool is_your_turn,
+                                                  std::string player_voting, std::vector<std::string> players,
+                                                  std::function<void(std::pair<std::string, std::string>)> voteHandler,
+                                                  std::pair<std::string, std::string> &selected,
+                                                  LinqComponents::Role role)
+{
+    std::string label = "vote-data-label";
+
+    Flow::Text *page_title = new Flow::Text(parent);
+    page_title->setLabel(label);
+    page_title->setText("It is time to vote");
+    page_title->loadFont(LinqComponents::OldStandardTTBold, 35);
+    page_title->setRelativePosition({0, 30});
+    page_title->setAutoSize(true);
+    page_title->setBackground({0, 0, 0, 0});
+    page_title->setColor({12, 12, 12, 255});
+    page_title->setChildReference(Flow::ReferencePoint::TopCenter);
+    page_title->setParentReference(Flow::ReferencePoint::TopCenter);
+    window->addComponent(page_id, page_title);
+
+    if (!is_your_turn)
+    {
+        Flow::Text *turn_label = new Flow::Text(parent);
+        turn_label->setLabel(label);
+        turn_label->setText("It is " + player_voting + "'s turn to vote !!");
+        turn_label->loadFont(LinqComponents::OldStandardTT, 25);
+        turn_label->setRelativePosition({0, 0});
+        turn_label->setAutoSize(true);
+        turn_label->setBackground({0, 0, 0, 0});
+        turn_label->setColor({12, 12, 12, 255});
+        turn_label->setChildReference(Flow::ReferencePoint::Center);
+        turn_label->setParentReference(Flow::ReferencePoint::Center);
+        window->addComponent(page_id, turn_label);
+        return label;
+    }
+    else
+    {
+        Flow::Text *turn_label = new Flow::Text(parent);
+        turn_label->setLabel(label);
+        turn_label->setText("It is your turn to vote, pick wisely !");
+        turn_label->loadFont(LinqComponents::OldStandardTTItalic, 25);
+        turn_label->setRelativePosition({0, 80});
+        turn_label->setAutoSize(true);
+        turn_label->setBackground({0, 0, 0, 0});
+        turn_label->setColor({12, 12, 12, 255});
+        turn_label->setChildReference(Flow::ReferencePoint::TopCenter);
+        turn_label->setParentReference(Flow::ReferencePoint::TopCenter);
+        window->addComponent(page_id, turn_label);
+    }
+
+    std::function<void(Flow::Component *)> onHoverButtonEnter = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::MenuBoardButtonHoverImagePath); };
+
+    std::function<void(Flow::Component *)> onHoverButtonExit = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::MenuBoardButtonImagePath); };
+
+    std::function<void(Flow::Component *)> onHoverButtonExitRed = [](Flow::Component *component)
+    { ((Flow::Image *)component)->setPath(LinqComponents::MenuBoardButtonRedImagePath); };
+
+    int i = 0;
+    for (auto player_name : players)
+    {
+        i++;
+        Flow::Image *player_button_frame = new Flow::Image(parent);
+        player_button_frame->setLabel(label);
+        player_button_frame->setPath(LinqComponents::MenuBoardButtonImagePath);
+        player_button_frame->setRelativePosition({0, 150 + 45 * i});
+        player_button_frame->setBackground({0, 0, 255, 255});
+        player_button_frame->setDimension({200, 40});
+        player_button_frame->setChildReference(Flow::ReferencePoint::TopCenter);
+        player_button_frame->setParentReference(Flow::ReferencePoint::TopCenter);
+        player_button_frame->onClick([=, &selected](Flow::Window *, Flow::Component *cmp)
+                                     {
+                                         selectSpy(selected, player_name);
+                                         if (selected.first == player_name || selected.second == player_name)
+                                         {
+                                            ((Flow::Image *)cmp)->setPath(LinqComponents::MenuBoardButtonRedImagePath);
+                                            player_button_frame->onHoverExit(onHoverButtonExitRed);
+                                         }
+                                         else
+                                         {
+                                            ((Flow::Image *)cmp)->setPath(LinqComponents::MenuBoardButtonImagePath);
+                                            player_button_frame->onHoverExit(onHoverButtonExit);
+                                         } });
+
+        player_button_frame->onClickOutside([=, &selected](Flow::Window *, Flow::Component *cmp)
+                                            {
+                                                if (selected.first == player_name || selected.second == player_name)
+                                                {
+                                                    ((Flow::Image *)cmp)->setPath(LinqComponents::MenuBoardButtonRedImagePath);
+                                                    player_button_frame->onHoverExit(onHoverButtonExitRed);
+                                                }
+                                                else
+                                                {
+                                                    ((Flow::Image *)cmp)->setPath(LinqComponents::MenuBoardButtonImagePath);player_button_frame->onHoverExit(onHoverButtonExit);
+                                                } });
+
+        player_button_frame->onHoverEnter(onHoverButtonEnter);
+        player_button_frame->onHoverExit(onHoverButtonExit);
+
+        window->addComponent(page_id, player_button_frame);
+
+        Flow::Text *player_button_text = new Flow::Text(player_button_frame);
+        player_button_text->setLabel(label);
+        player_button_text->setText(player_name);
+        player_button_text->loadFont(LinqComponents::OldStandardTT, 18);
+        player_button_text->setRelativePosition({0, 0});
+        player_button_text->setAutoSize(true);
+        player_button_text->setBackground({0, 0, 0, 0});
+        player_button_text->setColor({12, 12, 12, 255});
+        player_button_text->setChildReference(Flow::ReferencePoint::Center);
+        player_button_text->setParentReference(Flow::ReferencePoint::Center);
+        window->addComponent(page_id, player_button_text);
+    }
+
+    i += 2;
+    Flow::Text *error_text = new Flow::Text(parent);
+    error_text->setLabel(label);
+    error_text->setText("");
+    error_text->loadFont(LinqComponents::OldStandardTTBold, 18);
+    error_text->setRelativePosition({0, 150 + 45 * i});
+    error_text->setAutoSize(true);
+    error_text->setBackground({0, 0, 0, 0});
+    error_text->setColor({255, 0, 0, 255});
+    error_text->setChildReference(Flow::ReferencePoint::TopCenter);
+    error_text->setParentReference(Flow::ReferencePoint::TopCenter);
+    window->addComponent(page_id, error_text);
+
+    i++;
+    Flow::Image *player_button_frame = new Flow::Image(parent);
+    player_button_frame->setLabel(label);
+    player_button_frame->setPath(LinqComponents::MenuBoardButtonImagePath);
+    player_button_frame->setRelativePosition({0, 135 + 45 * i});
+    player_button_frame->setBackground({0, 0, 255, 255});
+    player_button_frame->setDimension({200, 40});
+    player_button_frame->setChildReference(Flow::ReferencePoint::TopCenter);
+    player_button_frame->setParentReference(Flow::ReferencePoint::TopCenter);
+    player_button_frame->onClick([=, &selected](Flow::Window *, Flow::Component *)
+                                 { 
+                                    if (selected.first != "" && selected.second != ""){error_text->setText("");voteHandler(selected);} 
+                                    else {error_text->setText("You need to select at least 2 spies !");}; });
+
+    player_button_frame->onHoverEnter(onHoverButtonEnter);
+    player_button_frame->onHoverExit(onHoverButtonExit);
+
+    window->addComponent(page_id, player_button_frame);
+
+    Flow::Text *player_button_text = new Flow::Text(player_button_frame);
+    player_button_text->setLabel(label);
+    player_button_text->setText("VOTE");
+    player_button_text->loadFont(LinqComponents::OldStandardTT, 18);
+    player_button_text->setRelativePosition({0, 0});
+    player_button_text->setAutoSize(true);
+    player_button_text->setBackground({0, 0, 0, 0});
+    player_button_text->setColor({12, 12, 12, 255});
+    player_button_text->setChildReference(Flow::ReferencePoint::Center);
+    player_button_text->setParentReference(Flow::ReferencePoint::Center);
+    window->addComponent(page_id, player_button_text);
+
+    return label;
+}

@@ -14,10 +14,12 @@ namespace LinqComponents
     const std::string OldStandardTT = "res/fonts/Old_Standard_TT/OldStandardTT-Regular.ttf";
     const std::string OldStandardTTBold = "res/fonts/Old_Standard_TT/OldStandardTT-Bold.ttf";
     const std::string OldStandardTTItalic = "res/fonts/Old_Standard_TT/OldStandardTT-Italic.ttf";
+
     const std::string MainBackgroundImagePath = "res/images/Background.png";
     const std::string MenuBoardImagePath = "./res/images/SpyBoard.png";
     const std::string MenuBoardButtonImagePath = "./res/images/ButtonFrame.png";
     const std::string MenuBoardButtonHoverImagePath = "./res/images/ButtonFrameHover.png";
+    const std::string MenuBoardButtonRedImagePath = "./res/images/ButtonRedFrame.png";
     const std::string InputFrameImagePath = "./res/images/InputFrame.png";
     const std::string InputFrameHoverImagePath = "./res/images/InputFrameHover.png";
     const std::string InputFrameFocusImagePath = "./res/images/InputFrameFocus.png";
@@ -40,4 +42,10 @@ namespace LinqComponents
 
     std::string createGameDataSection(Flow::Window *window, Flow::Component *parent, std::map<std::string, std::string> conv,
                                       std::string current_player, std::function<void(std::string)> onSend, bool is_my_turn, int page_id);
+
+    std::string createVoteDataSection(Flow::Window *window, Flow::Component *parent, int page_id, bool is_your_turn,
+                                      std::string player_voting, std::vector<std::string> players,
+                                      std::function<void(std::pair<std::string, std::string>)> voteHandler,
+                                      std::pair<std::string, std::string> &selected,
+                                      LinqComponents::Role role);
 }

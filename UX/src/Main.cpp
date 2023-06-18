@@ -16,6 +16,7 @@ LinqClient::ClientConnection *client = nullptr;
 LinqClient::LinqClientGame *game = nullptr;
 
 Flow::Window window;
+std::pair<std::string, std::string> selected_spies = {"", ""};
 
 // Setup Page
 std::vector<Flow::Text *> players_display;
@@ -128,6 +129,40 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 			window.removeComponentsByLabel("game-data-label");
 			LinqComponents::createGameDataSection(
 				&window, game_board, players_words, "", [](std::string output) {}, false, GAME_PAGE); });
+	}
+	else if (request.type == LinqClient::ServerRequestType::VOTE)
+	{
+		if (std::stoi(request.args[0]) == game->id)
+		{
+			window.onNextRender([client, request]()
+								{ 	
+									window.removeComponentsByLabel("game-data-label");									  
+									window.removeComponentsByLabel("vote-data-label");
+									LinqComponents::createVoteDataSection(
+									  &window, game_board, GAME_PAGE, true, "You", game->players,
+									  [client](std::pair<std::string, std::string> vote)
+									  {
+										client->sendMessage("CAST " + std::to_string(game->id) + " " + vote.first + " " + vote.second);
+									  },
+									  selected_spies,
+									  (LinqComponents::Role)((int)game->role)); });
+		}
+		else
+		{
+			window.onNextRender([client, request]()
+								{ 		
+									window.removeComponentsByLabel("game-data-label");								  
+									window.removeComponentsByLabel("vote-data-label");
+									LinqComponents::createVoteDataSection(
+									  &window, game_board, GAME_PAGE, false, request.args[1], game->players,
+									  [client](std::pair<std::string, std::string> vote){},
+									  selected_spies,
+									  (LinqComponents::Role)((int)game->role)); });
+		}
+	}
+	else if (request.type == LinqClient::ServerRequestType::VOTED)
+	{
+		std::cout << request.args[0] << " Voted for " << request.args[1] << " and " << request.args[2] << std::endl;
 	}
 	else
 	{
