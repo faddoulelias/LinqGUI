@@ -18,7 +18,7 @@ DEPS := ../Client ../Server
 # Files
 SRCS := $(wildcard $(SOURCE)/*.cpp)
 OBJS := $(patsubst $(SOURCE)/%.cpp, $(OBJECT)/%.o, $(SRCS))
-EXEC := $(BUILD)/Flow
+EXEC := $(BUILD)/Linq1910
 
 DEPS_OBJS := $(foreach dep, $(DEPS), $(wildcard $(dep)/build/obj/*.o)) 
 DEPS_OBJS := $(filter-out %Main.o, $(DEPS_OBJS))
