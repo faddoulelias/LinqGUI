@@ -79,11 +79,7 @@ Window::Window()
     this->on_next_render = nullptr;
 }
 
-Window::~Window()
-{
-    SDL_DestroyWindow((SDL_Window *)this->window);
-    SDL_Quit();
-}
+Window::~Window() = default;
 
 bool Window::isResizable()
 {
@@ -277,6 +273,10 @@ void Window::mainLoop()
             this->handleEvent(&event);
         }
     }
+
+    SDL_DestroyRenderer((SDL_Renderer *)this->renderer);
+    SDL_DestroyWindow((SDL_Window *)this->window);
+    SDL_Quit();
 }
 
 void Window::onNextRender(std::function<void()> on_next_render)

@@ -25,6 +25,7 @@ $(EXEC) : $(OBJS)
 	$(CXX) $(CFLAGS) -o $(EXEC) $(OBJS)
 
 $(OBJECT)/%.o : $(SOURCE)/%.cpp
+	mkdir -p build/obj
 	$(CXX) $(CFLAGS) -o $@ -c $^
 
 clean:

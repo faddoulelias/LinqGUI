@@ -1,4 +1,4 @@
-.PHONY = all clean run
+.PHONY = all clean run cleanall
 
 # Compiler
 CXX := g++
@@ -30,11 +30,16 @@ run:$(EXEC)
 	$(EXEC) $(ARGS)
 
 $(EXEC) : $(OBJS)
-	$(foreach dep, $(DEPS), $(MAKE) -C $(dep) all;) 
+	$(foreach dep, $(DEPS), $(MAKE) -C $(dep) all;)
 	$(CXX) $(CFLAGS) -o $(EXEC) $(OBJS) $(DEPS_OBJS) $(SDLFLAGS)
 
 $(OBJECT)/%.o : $(SOURCE)/%.cpp
+	mkdir -p build/obj
 	$(CXX) $(CFLAGS) -o $@ -c $^ $(SDLFLAGS) -I$(HEADER) $(foreach dep, $(DEPS), -I$(dep)/src/headers)
 
 clean:
 	rm -f $(EXEC) $(OBJS)
+
+cleanall:
+	rm -f $(EXEC) $(OBJS)
+	$(foreach dep, $(DEPS), $(MAKE) -C $(dep) clean;)

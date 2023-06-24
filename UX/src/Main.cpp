@@ -47,6 +47,7 @@ int startGameServer(int port, std::string username)
 
 void onMessage(LinqClient::ClientConnection *client, std::string message)
 {
+	std::cout << "Message: " << message << std::endl;
 	LinqClient::ServerRequest request(message);
 	if (request.type == LinqClient::ServerRequestType::CONNECTED)
 	{
@@ -116,9 +117,7 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 				window.removeComponentsByLabel("game-data-label");
 				LinqComponents::createGameDataSection(
 					&window, game_board, players_words, request.args[1],
-					[client](std::string output)
-					{ client->sendMessage("WORD " + std::to_string(game->id) + " " + output); },
-					false, GAME_PAGE); });
+					[client](std::string output) { }, false, GAME_PAGE); });
 		}
 	}
 	else if (request.type == LinqClient::ServerRequestType::SAID)
@@ -187,10 +186,6 @@ void onMessage(LinqClient::ClientConnection *client, std::string message)
 				window.setCurrentPage(WINNER_PAGE); });
 		}
 	}
-	else
-	{
-		std::cout << "Unknown message: " << message << std::endl;
-	}
 }
 
 int startGameClient(int port, std::string username)
@@ -229,7 +224,6 @@ int main(int argc, char *argv[])
 	// *****************
 	// * Create Game Page *
 	// *****************
-
 	Flow::Image *create_game_background = LinqComponents::setPageBackground(&window, CREATE_GAME_MENU, LinqComponents::MainBackgroundImagePath);
 	Flow::Image *create_game_spy_board = LinqComponents::createMenuBoard(&window, create_game_background, "Create Game", CREATE_GAME_MENU);
 	Flow::Text *port_input = LinqComponents::createInputFrame(&window, create_game_spy_board, "3000", -6, CREATE_GAME_MENU);
@@ -259,7 +253,6 @@ int main(int argc, char *argv[])
 	// *****************
 	// * Waiting for connection Page *
 	// *****************
-
 	Flow::Image *waiting_for_connection_background = LinqComponents::setPageBackground(&window, CONNECTION_LOBBY, LinqComponents::MainBackgroundImagePath);
 	Flow::Image *waiting_for_connection_spy_board = LinqComponents::createMenuBoard(&window, waiting_for_connection_background, "Game Lobby", CONNECTION_LOBBY);
 	port_text = LinqComponents::createTextLine(&window, waiting_for_connection_spy_board, "Game open on port [????]:", LinqComponents::OldStandardTTBold, 24, 3, CONNECTION_LOBBY);
@@ -272,7 +265,6 @@ int main(int argc, char *argv[])
 	// *****************
 	// * Game Page 	   *
 	// *****************
-
 	game_background = LinqComponents::setPageBackground(&window, GAME_PAGE, LinqComponents::GameBackgroundImagePath);
 
 	window.setCurrentPage(MAIN_MENU);
