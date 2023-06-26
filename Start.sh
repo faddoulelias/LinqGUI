@@ -1,4 +1,4 @@
-#! bin/bash
+#!/bin/bash
 
 make -C Server all
 make -C Client all
