@@ -240,11 +240,11 @@ int main(int argc, char *argv[])
 	std::string random_player_name = "Player" + std::to_string(rand() % 1000);
 	Flow::Image *connect_background = LinqComponents::setPageBackground(&window, CONNECT_MENU, LinqComponents::MainBackgroundImagePath);
 	Flow::Image *connect_spy_board = LinqComponents::createMenuBoard(&window, connect_background, "Connect", CONNECT_MENU);
-	Flow::Text *connect_port_input = LinqComponents::createInputFrame(&window, connect_spy_board, "3000", -6, CONNECT_MENU);
-	Flow::Text *connect_username_input = LinqComponents::createInputFrame(&window, connect_spy_board, random_player_name, -3, CONNECT_MENU);
+	Flow::Text *connect_port_input = LinqComponents::createInputFrame(&window, connect_spy_board, "3000", -5, CONNECT_MENU);
+	Flow::Text *connect_username_input = LinqComponents::createInputFrame(&window, connect_spy_board, random_player_name, -2, CONNECT_MENU);
 
-	LinqComponents::createBoardNavigationButton(&window, connect_spy_board, "Back", -1.5, CONNECT_MENU, MAIN_MENU);
-	LinqComponents::createBoardActionButton(&window, connect_spy_board, "Connect", 1.5, CONNECT_MENU, [connect_port_input, connect_username_input](Flow::Window *window, Flow::Component *component)
+	LinqComponents::createBoardNavigationButton(&window, connect_spy_board, "Back", 1, CONNECT_MENU, MAIN_MENU);
+	LinqComponents::createBoardActionButton(&window, connect_spy_board, "Connect", 4, CONNECT_MENU, [connect_port_input, connect_username_input](Flow::Window *window, Flow::Component *component)
 											{
 												std::cout << "Connecting to Game on port " << connect_port_input->getText() << std::endl;
 												startGameClient(std::stoi(connect_port_input->getText()), connect_username_input->getText());
